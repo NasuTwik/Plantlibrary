@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasvikirjasto - Plant Library</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f1;
+            color: #2c3e35;
+            padding: 40px 20px;
+        }
+
+        header {
+            max-width: 1000px;
+            margin: 0 auto 32px auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: #1b4332;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #52796f;
+            font-size: 1rem;
+        }
+
+        /* CSS Grid mukautuu automaattisesti ruudun kokoon */
+        #plant-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* Yksittäinen kasvikortti (Card Component) */
+        .plant-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            border-top: 5px solid #40916c;
+            transition: transform 0.15s ease;
+        }
+
+        .plant-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .plant-name {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1b4332;
+            margin-bottom: 4px;
+        }
+
+        .plant-species {
+            font-style: italic;
+            color: #748cab;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .plant-info {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .plant-info strong {
+            color: #2d6a4f;
+        }
+
+        .plant-notes {
+            margin-top: 14px;
+            padding: 10px 12px;
+            background-color: #e8f5e9;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #2d6a4f;
+        }
+
+        .error-msg {
+            text-align: center;
+            color: #d90429;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>🌿 Kasvikirjasto</h1>
+        <p class="subtitle">SQLite + Express REST API + Vanilla JS Frontend</p>
+    </header>
+
+    <!-- Tähän div-elementtiin JavaScript renderöi kasvikortit -->
+    <div id="plant-container">Ladataan kasveja...</div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/plants';
+        const container = document.getElementById('plant-container');
+
+        async function loadPlants() {
+            try {
+                // 1. Haetaan kasvit REST API:sta (GET /plants)
+                const response = await fetch(API_URL);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                // 2. Parsitaan JSON-response JavaScript Arrayksi
+                const plants = await response.json();
+
+                // Tyhjennetään "Ladataan..."-teksti
+                container.innerHTML = '';
+
+                // 3. Luodaan jokaiselle kasville oma div-kortti ja lisätään se DOM:iin
+                plants.forEach(plant => {
+                    const card = document.createElement('div');
+                    card.className = 'plant-card';
+
+                    card.innerHTML = `
+            <div class="plant-name">${plant.name}</div>
+            <div class="plant-species">${plant.species}</div>
+            <div class="plant-info">📍 <strong>Sijainti:</strong> ${plant.location}</div>
+            <div class="plant-info">💧 <strong>Kastelutiheys:</strong> ${plant.watering_frequency}</div>
+            <div class="plant-notes">📝 <strong>Huomiot:</strong> ${plant.notes}</div>
+          `;
+
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Virhe kasvien latauksessa:', error);
+                container.innerHTML = `<p class="error-msg">Virhe yhteydessä palvelimeen. Varmista, että node server.js on käynnissä!</p>`;
+            }
+        }
+
+        // Käynnistetään haku heti, kun sivu latautuu
+        loadPlants();
+    </script>
+
+</body>
+
+</html>
